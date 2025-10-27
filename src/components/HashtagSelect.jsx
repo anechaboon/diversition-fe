@@ -31,6 +31,7 @@ export default function HashtagSelect({ value, onChange }) {
 
       const hashtags = res.data?.data || [];
       const options = hashtags.map((tag) => ({
+        id: tag.id,
         value: tag.name,
         label: `#${tag.name}`,
       }));
@@ -86,7 +87,7 @@ export default function HashtagSelect({ value, onChange }) {
     try {
       const res = await axios.post(API_URL, { name });
       const created = res.data?.data || { name };
-      const newOption = { value: created.name, label: `#${created.name}` };
+      const newOption = { id: created.id, value: created.name, label: `#${created.name}` };
       onChange([...(value || []), newOption]);
     } catch (err) {
       console.error('create hashtag error', err);

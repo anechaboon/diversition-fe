@@ -1,7 +1,6 @@
-/* Masonry grid */
 .masonry-grid {
   display: flex;
-  margin-left: -1rem; /* กำหนด gap */
+  margin-left: -1rem;
   width: auto;
 }
 
@@ -10,9 +9,12 @@
   background-clip: padding-box;
 }
 
-/* Masonry item */
 .masonry-item {
   margin-bottom: 1rem;
+}
+
+.img-wrapper {
+  position: relative;
 }
 
 .img-slide {
@@ -25,4 +27,27 @@
 
 .img-slide:hover {
   transform: scale(1.05);
+}
+
+/* Hashtags overlay */
+.hashtags-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 0.3rem 0.5rem;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  border-radius: 0 0 8px 8px;
+}
+
+.hashtag {
+  color: #fff;
+  font-size: 0.75rem;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
 }

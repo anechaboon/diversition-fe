@@ -1,27 +1,23 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
-import LightGallery from 'lightgallery/react';
-import 'lightgallery/css/lightgallery.css';
-import 'lightgallery/css/lg-zoom.css';
-import 'lightgallery/css/lg-thumbnail.css';
-import lgThumbnail from 'lightgallery/plugins/thumbnail';
-import lgZoom from 'lightgallery/plugins/zoom';
+import Masonry from 'react-masonry-css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import './SlideShow.css';
 
 function SlideShow() {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const initialLoaded = useRef(false);
 
   const imagesPerPage = 20;
-  const chunkSize = 3;
-  const chunkDelay = 200;
 
   const loadImages = useCallback(async (pageNum) => {
     if (!hasMore || loading) return;
     setLoading(true);
+
     try {
-      // http://localhost:4000/api/image/getByHashtag
       const res = await axios.post('http://localhost:4000/api/uploads/getByHashtag', {
         params: { hashtag: '', page: pageNum, limit: imagesPerPage }
       });
@@ -32,12 +28,8 @@ function SlideShow() {
         return;
       }
 
-      // โหลดแบบ chunk ทีละน้อย
-      for (let i = 0; i < data.length; i += chunkSize) {
-        const chunk = data.slice(i, i + chunkSize);
-        await new Promise(resolve => setTimeout(resolve, chunkDelay));
-        setImages(prev => [...prev, ...chunk]);
-      }
+      // append รูปภาพใหม่
+      setImages(prev => [...prev, ...data]);
 
       if (pagination.page >= pagination.totalPages) {
         setHasMore(false);
@@ -49,8 +41,12 @@ function SlideShow() {
     }
   }, [hasMore, loading]);
 
+  // โหลดครั้งแรก
   useEffect(() => {
-    loadImages(1);
+    if (!initialLoaded.current) {
+      initialLoaded.current = true;
+      loadImages(1);
+    }
   }, []);
 
   const handleScroll = useCallback(() => {
@@ -58,7 +54,7 @@ function SlideShow() {
     const scrollTop = window.pageYOffset;
     const scrollHeight = document.documentElement.scrollHeight;
     const clientHeight = window.innerHeight;
-    if (scrollTop + clientHeight >= scrollHeight - 200) {
+    if (scrollTop + clientHeight >= scrollHeight - 300) {
       setPage(prev => {
         const next = prev + 1;
         loadImages(next);
@@ -72,15 +68,37 @@ function SlideShow() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
+  // Breakpoint ของ Masonry (responsive)
+  const breakpointColumnsObj = {
+    default: 4,
+    1200: 3,
+    768: 2,
+    480: 1
+  };
+
   return (
-    <div className="App">
-      <LightGallery speed={500} plugins={[lgThumbnail, lgZoom]}>
+    <div className="container my-3">
+      <Masonry
+        breakpointCols={breakpointColumnsObj}
+        className="masonry-grid"
+        columnClassName="masonry-grid_column"
+      >
         {images.map(img => (
-            <img class="img-slide" alt={img.id} src={`http://localhost:4000${img.file_path}`} loading="lazy" width={330} />
+          <div className="masonry-item" key={img.id ?? img.file_path}>
+            <a href={img.file_path}>
+              <img
+                className="img-fluid rounded img-slide"
+                src={`http://localhost:4000${img.file_path}`}
+                alt=""
+                loading="lazy"
+              />
+            </a>
+          </div>
         ))}
-      </LightGallery>
-      {loading && <div style={{ textAlign: 'center', margin: '1rem' }}>กำลังโหลดรูปภาพ...</div>}
-      {!hasMore && <div style={{ textAlign: 'center', color: '#777' }}>ไม่มีข้อมูลเพิ่มเติมแล้ว</div>}
+      </Masonry>
+
+      {loading && <div className="text-center my-3">กำลังโหลดรูปภาพ...</div>}
+      {!hasMore && <div className="text-center text-muted my-3">ไม่มีข้อมูลเพิ่มเติมแล้ว</div>}
     </div>
   );
 }

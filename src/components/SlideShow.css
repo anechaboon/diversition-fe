@@ -1,0 +1,28 @@
+/* Masonry grid */
+.masonry-grid {
+  display: flex;
+  margin-left: -1rem; /* กำหนด gap */
+  width: auto;
+}
+
+.masonry-grid_column {
+  padding-left: 1rem;
+  background-clip: padding-box;
+}
+
+/* Masonry item */
+.masonry-item {
+  margin-bottom: 1rem;
+}
+
+.img-slide {
+  width: 100%;
+  display: block;
+  border-radius: 8px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.img-slide:hover {
+  transform: scale(1.05);
+}

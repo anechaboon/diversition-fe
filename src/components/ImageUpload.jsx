@@ -2,28 +2,41 @@
 import React, { useState } from 'react';
 
 export default function ImageUpload({ onFileSelect }) {
-  const [preview, setPreview] = useState(null);
+  const [previews, setPreviews] = useState([]);
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    onFileSelect(file); // ส่งไฟล์กลับ parent
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    
+    onFileSelect(files); // ส่งไฟล์กลับ parent
 
-    const reader = new FileReader();
-    reader.onloadend = () => setPreview(reader.result);
-    reader.readAsDataURL(file);
+    // Generate previews for all selected files
+    const previewPromises = files.map(file => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+      });
+    });
+
+    Promise.all(previewPromises).then(setPreviews);
   };
 
   return (
     <div className="mb-4">
-      <input type="file" accept="image/*" onChange={handleFileChange} />
-      {preview && (
-        <img
-          src={preview}
-          alt="Preview"
-          className="mt-2 rounded-md border"
-          style={{ width: '100%', maxHeight: '300px', objectFit: 'cover' }}
-        />
+      <input type="file" accept="image/*" multiple onChange={handleFileChange} />
+      {previews.length > 0 && (
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          {previews.map((preview, index) => (
+            <img
+              key={index}
+              src={preview}
+              alt={`Preview ${index + 1}`}
+              className="rounded-md border"
+              style={{ width: '100%', maxHeight: '300px', objectFit: 'cover' }}
+            />
+          ))}
+        </div>
       )}
     </div>
   );

@@ -13,7 +13,7 @@ function SlideShow() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
-  const imagesPerPage = 10;
+  const imagesPerPage = 20;
   const chunkSize = 3;
   const chunkDelay = 200;
 
@@ -23,7 +23,7 @@ function SlideShow() {
     try {
       // http://localhost:4000/api/image/getByHashtag
       const res = await axios.post('http://localhost:4000/api/uploads/getByHashtag', {
-        params: { hashtag: 'test', page: pageNum, limit: imagesPerPage }
+        params: { hashtag: '', page: pageNum, limit: imagesPerPage }
       });
 
       const { data, pagination } = res.data;
@@ -51,7 +51,7 @@ function SlideShow() {
 
   useEffect(() => {
     loadImages(1);
-  }, [loadImages]);
+  }, []);
 
   const handleScroll = useCallback(() => {
     if (loading || !hasMore) return;
@@ -76,9 +76,7 @@ function SlideShow() {
     <div className="App">
       <LightGallery speed={500} plugins={[lgThumbnail, lgZoom]}>
         {images.map(img => (
-          <a key={img.id} href={`http://localhost:4000${img.file_path}`}>
-            <img alt={img.id} src={`http://localhost:4000${img.file_path}`} loading="lazy" />
-          </a>
+            <img class="img-slide" alt={img.id} src={`http://localhost:4000${img.file_path}`} loading="lazy" width={330} />
         ))}
       </LightGallery>
       {loading && <div style={{ textAlign: 'center', margin: '1rem' }}>กำลังโหลดรูปภาพ...</div>}

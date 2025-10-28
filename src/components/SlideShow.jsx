@@ -22,7 +22,7 @@ function SlideShow() {
       setLoading(true);
       try {
         const res = await axios.post(
-          "http://localhost:4000/api/uploads/getByHashtag",
+          "http://localhost:4000/api/images/getByHashtag",
           { params: { hashtag: "", page: pageNum, limit: imagesPerPage } }
         );
 

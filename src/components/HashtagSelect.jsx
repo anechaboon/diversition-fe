@@ -96,6 +96,7 @@ export default function HashtagSelect({ value, onChange }) {
 
   return (
     <AsyncCreatableSelect
+      className='mb-4'
       isMulti
       defaultOptions
       loadOptions={loadOptions}

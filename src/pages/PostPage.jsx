@@ -5,6 +5,7 @@ import ImageUpload from '../components/ImageUpload';
 import axios from 'axios';
 import { uploadFile } from '../utils/uploadFile'
 import Navbar from '../components/Navbar';
+import Swal from 'sweetalert2';
 
 export default function PostPage() {
   const [hashtags, setHashtags] = useState([]); // array ของ object {id, name}
@@ -39,9 +40,16 @@ export default function PostPage() {
       });
 
       console.log('Post success:', response.data);
-      // alert('บันทึกสำเร็จ');
-      setHashtags([]);
-      setImageFiles([]); // Reset to empty array
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'โพสต์สำเร็จ',
+        showConfirmButton: false,
+        timer: 2000
+      }).then(() => {
+        location.reload(); // โหลดหน้าใหม่
+      });
+      
     } catch (error) {
       console.error('Error submitting post:', error);
     }
@@ -54,12 +62,13 @@ export default function PostPage() {
       <div className="p-4 max-w-md mx-auto">
       <h1 className="text-xl font-bold mb-4">โพสต์รูปพร้อม Hashtags</h1>
       <form onSubmit={handleSubmit}>
-        <ImageUpload onFileSelect={setImageFiles} /> {/* Pass the array setter */}
         <HashtagSelect value={hashtags} onChange={setHashtags} />
+        <ImageUpload onFileSelect={setImageFiles} /> {/* Pass the array setter */}
+
         <button
           type="submit"
-          className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-        >บันทึก</button>
+          className="btn btn-primary w-100 px-4 py-2 rounded-md "
+        >Save</button>
       </form>
     </div>
     </div>

@@ -143,11 +143,18 @@ function SlideShow() {
         </div>
       )}
       {loading && <div className="text-center my-3">กำลังโหลดรูปภาพ...</div>}
-      {!hasMore && !isFiltering && (
-        <div className="text-center text-muted my-3">
-          ไม่มีข้อมูลเพิ่มเติมแล้ว
-        </div>
-      )}
+
+        <div>
+        {(() => {
+          if (images.length === 0 && !loading) {
+            return <div className="text-center my-3">ไม่พบรูปภาพ Upload <a href='/upload'>ที่นี่</a></div>;
+          } else if (!hasMore && !isFiltering) {
+            return <div className="text-center text-muted my-3">
+                ไม่มีข้อมูลเพิ่มเติมแล้ว
+              </div>;
+          }
+        })()}
+      </div>
     </div>
   );
 }

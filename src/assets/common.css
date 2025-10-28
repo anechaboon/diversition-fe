@@ -9,6 +9,9 @@
 
 .logo {
   font-size: 1.5rem;
+  font-weight: bold;
+  padding: 10px;
+  color: #f69a2b;
 }
 
 .nav-links {
@@ -17,15 +20,26 @@
 }
 
 .nav-links li {
-  margin-right: 20px;
+  margin-right: 8px;
 }
 
 .nav-links li a {
-  color: #fff;
   text-decoration: none;
-  transition: color 0.3s ease;
+  color: #ccc;
+  font-size: 16px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
 }
 
 .nav-links li a:hover {
-  color: #f0f0f0;
+  color: #fff;
+  background-color: #333;
+}
+
+.nav-links li a.active {
+  color: #000000;
+  background-color: #f69a2b;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
 }

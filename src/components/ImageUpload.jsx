@@ -33,7 +33,7 @@ export default function ImageUpload({ onFileSelect }) {
               src={preview}
               alt={`Preview ${index + 1}`}
               className="rounded-md border"
-              style={{ width: '100%', maxHeight: '300px', objectFit: 'cover' }}
+              style={{ maxHeight: '100px', objectFit: 'cover' }}
             />
           ))}
         </div>

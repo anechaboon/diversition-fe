@@ -3,7 +3,9 @@ import AsyncCreatableSelect from 'react-select/async-creatable';
 import axios from 'axios';
 import debounce from 'lodash.debounce';
 
-const API_URL = 'http://localhost:4000/api/hashtags'; // ✅ พอร์ต 4000
+
+const BASE_URL = import.meta.env.VITE_API_URL;
+const API_URL = `${BASE_URL}/api/hashtags`; // ✅ พอร์ต 4000
 const DEBOUNCE_MS = 300;
 
 export default function HashtagSelect({ value, onChange }) {

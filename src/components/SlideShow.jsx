@@ -5,6 +5,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./SlideShow.css";
 
 function SlideShow() {
+  const BASE_URL = import.meta.env.VITE_API_URL;
   const [allImages, setAllImages] = useState([]);
   const [images, setImages] = useState([]); 
   const [loading, setLoading] = useState(false);
@@ -14,7 +15,6 @@ function SlideShow() {
   const initialLoaded = useRef(false);
 
   const imagesPerPage = 20;
-
   // โหลดรูปจาก API
   const loadImages = useCallback(
     async (pageNum) => {
@@ -22,7 +22,7 @@ function SlideShow() {
       setLoading(true);
       try {
         const res = await axios.post(
-          "http://localhost:4000/api/images/getByHashtag",
+          `${BASE_URL}/api/images/getByHashtag`,
           { params: { hashtag: "", page: pageNum, limit: imagesPerPage } }
         );
         if(!res.status){
@@ -114,10 +114,10 @@ function SlideShow() {
         {images.map((img) => (
           <div className="masonry-item" key={img.id ?? img.file_path}>
             <div className="img-wrapper">
-              <a href={`http://localhost:4000${img.file_path}`}>
+              <a href={`${BASE_URL}${img.file_path}`}>
                 <img
                   className="img-fluid rounded img-slide"
-                  src={`http://localhost:4000${img.file_path}`}
+                  src={`${BASE_URL}${img.file_path}`}
                   alt=""
                   loading="lazy"
                 />

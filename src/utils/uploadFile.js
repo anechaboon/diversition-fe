@@ -7,7 +7,8 @@ import axios from 'axios';
  * @param {string} url - endpoint สำหรับอัปโหลดไฟล์
  * @returns {Promise<number|string>} - คืนค่า id ของไฟล์จาก server
  */
-export async function uploadFile(file, url = 'http://localhost:4000/api/images/upload') {
+const BASE_URL = import.meta.env.VITE_API_URL;
+export async function uploadFile(file, url = BASE_URL+'/api/images/upload') {
   if (!file) throw new Error('No file provided');
 
   const formData = new FormData();

@@ -8,6 +8,7 @@ import Navbar from '../components/Navbar';
 import Swal from 'sweetalert2';
 
 export default function PostPage() {
+  const BASE_URL = import.meta.env.VITE_API_URL;
   const [hashtags, setHashtags] = useState([]); // array ของ object {id, name}
   const [imageFiles, setImageFiles] = useState([]); // Changed to array
 
@@ -30,7 +31,7 @@ export default function PostPage() {
         imageFiles.map(file => uploadFile(file))
       );
 
-      await axios.post('http://localhost:4000/api/post', {
+      await axios.post(`${BASE_URL}/api/post`, {
         image_ids: imageIds, // Send array of image IDs
         hashtags: hashtagIds,
       });

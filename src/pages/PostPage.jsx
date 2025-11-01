@@ -42,7 +42,8 @@ export default function PostPage() {
         showConfirmButton: false,
         timer: 2000
       }).then(() => {
-        location.reload(); // โหลดหน้าใหม่
+        // redirect to home page
+        window.location.href = import.meta.env.VITE_FE_URL;
       });
       
     } catch (error) {

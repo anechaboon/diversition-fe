@@ -13,6 +13,31 @@ export default function HashtagSelect({ value, onChange }) {
   // ตัด # และ trim ช่องว่าง
   const normalizeInput = (s) => (s || '').replace(/^#/, '').trim();
 
+  const loadOptions = (inputValue) => {
+    const q = normalizeInput(inputValue);
+    if (!q) {
+      setLastQueryOptions([]);
+
+      if (cancelSourceRef.current) {
+        try {
+          cancelSourceRef.current.cancel('empty query');
+        } catch (e) {
+          console.error('cancel error', e);
+        }
+      }
+      return Promise.resolve([]);
+    }
+    return new Promise((resolve) => debouncedFetch(q, resolve));
+  };
+
+  // debounce เพื่อเลี่ยงการยิง API ถี่เกิน
+  const debouncedFetch = useCallback(
+    debounce((query, resolve) => {
+      fetchOptions(query).then(resolve).catch(() => resolve([]));
+    }, DEBOUNCE_MS),
+    []
+  );
+
   // โหลดข้อมูลจาก API (ตาม query)
   const fetchOptions = async (query) => {
     if (cancelSourceRef.current) {
@@ -44,30 +69,6 @@ export default function HashtagSelect({ value, onChange }) {
       setLastQueryOptions([]);
       return [];
     }
-  };
-
-  // debounce เพื่อเลี่ยงการยิง API ถี่เกิน
-  const debouncedFetch = useCallback(
-    debounce((query, resolve) => {
-      fetchOptions(query).then(resolve).catch(() => resolve([]));
-    }, DEBOUNCE_MS),
-    []
-  );
-
-  const loadOptions = (inputValue) => {
-    const q = normalizeInput(inputValue);
-    if (!q) {
-      setLastQueryOptions([]);
-      if (cancelSourceRef.current) {
-        try {
-          cancelSourceRef.current.cancel('empty query');
-        } catch (e) {
-          console.error('cancel error', e);
-        }
-      }
-      return Promise.resolve([]);
-    }
-    return new Promise((resolve) => debouncedFetch(q, resolve));
   };
 
   // ตรวจว่า input มีอยู่ใน options หรือ selected แล้วหรือไม่

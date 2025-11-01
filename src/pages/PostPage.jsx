@@ -11,10 +11,8 @@ export default function PostPage() {
   const [hashtags, setHashtags] = useState([]); // array ของ object {id, name}
   const [imageFiles, setImageFiles] = useState([]); // Changed to array
 
-  
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (imageFiles.length === 0) {
       alert('กรุณาเลือกภาพก่อน');
       return;
@@ -27,20 +25,16 @@ export default function PostPage() {
         return;
       }
 
-      // let hashtagIds = [18]
-      
       // Upload all files and get their IDs
       const imageIds = await Promise.all(
         imageFiles.map(file => uploadFile(file))
       );
 
-      const response = await axios.post('http://localhost:4000/api/post', {
+      await axios.post('http://localhost:4000/api/post', {
         image_ids: imageIds, // Send array of image IDs
         hashtags: hashtagIds,
       });
-
-      console.log('Post success:', response.data);
-      
+    
       Swal.fire({
         icon: 'success',
         title: 'โพสต์สำเร็จ',

@@ -5,8 +5,8 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./SlideShow.css";
 
 function SlideShow() {
-  const [allImages, setAllImages] = useState([]);    // เก็บรูปทั้งหมด
-  const [images, setImages] = useState([]);          // รูปที่แสดงจริง
+  const [allImages, setAllImages] = useState([]);
+  const [images, setImages] = useState([]); 
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -25,14 +25,17 @@ function SlideShow() {
           "http://localhost:4000/api/images/getByHashtag",
           { params: { hashtag: "", page: pageNum, limit: imagesPerPage } }
         );
-
-        const { data: newData, pagination } = res.data; // แก้จาก newData เป็น data
+        if(!res.status){
+          setHasMore(false);
+          return;
+        }
+        
+        const { data: newData, pagination } = res.data;
         if (!newData || newData.length === 0) {
           setHasMore(false);
           return;
         }
 
-        // append รูปใหม่
         setAllImages(prev => [...prev, ...newData]);
         setImages(prev => [...prev, ...newData]);
 
@@ -58,7 +61,7 @@ function SlideShow() {
 
   // Scroll handler
   const handleScroll = useCallback(() => {
-    if (loading || !hasMore || isFiltering) return;
+    if (loading || !hasMore) return;
     const scrollTop = window.pageYOffset;
     const scrollHeight = document.documentElement.scrollHeight;
     const clientHeight = window.innerHeight;
@@ -90,15 +93,15 @@ function SlideShow() {
     setIsFiltering(true);
     const filtered = allImages.filter(img => img.hashtags?.includes(tag));
     setImages(filtered);
-    setHasMore(false); // ป้องกัน scroll load
+    setHasMore(false);
   };
 
   // Reset filter
   const resetFilter = () => {
     setIsFiltering(false);
-    setImages([...allImages]); // แสดงรูปทั้งหมด
-    setHasMore(true);           // เปิด scroll load
-    setPage(Math.ceil(allImages.length / imagesPerPage)); // ปรับ page
+    setImages([...allImages]); 
+    setHasMore(true);
+    setPage(Math.ceil(allImages.length / imagesPerPage));
   };
 
   return (
@@ -108,10 +111,10 @@ function SlideShow() {
         className="masonry-grid"
         columnClassName="masonry-grid_column"
       >
-        {images.map(img => (
+        {images.map((img) => (
           <div className="masonry-item" key={img.id ?? img.file_path}>
             <div className="img-wrapper">
-              <a href={img.file_path}>
+              <a href={`http://localhost:4000${img.file_path}`}>
                 <img
                   className="img-fluid rounded img-slide"
                   src={`http://localhost:4000${img.file_path}`}

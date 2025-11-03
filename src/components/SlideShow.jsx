@@ -16,14 +16,13 @@ function SlideShow() {
 
   const imagesPerPage = 20;
   // โหลดรูปจาก API
-  const loadImages = useCallback(
-    async (pageNum) => {
-      if (!hasMore || loading) return;
+  const loadImages = async (pageNum, hashtag = "") => {
+      if (!hashtag && (!hasMore || loading)) return; // ✅ เพิ่ม !hashtag เงื่อนไขพิเศษ
       setLoading(true);
       try {
         const res = await axios.post(
           `${BASE_URL}/api/images/getByHashtag`,
-          { params: { hashtag: "", page: pageNum, limit: imagesPerPage } }
+          { params: { hashtag: hashtag, page: pageNum, limit: imagesPerPage } }
         );
         if(!res.status){
           setHasMore(false);
@@ -33,6 +32,13 @@ function SlideShow() {
         const { data: newData, pagination } = res.data;
         if (!newData || newData.length === 0) {
           setHasMore(false);
+          return;
+        }
+
+        if(hashtag !== ""){
+          setImages(newData);
+          setHasMore(false);
+          setLoading(false);
           return;
         }
 
@@ -47,9 +53,7 @@ function SlideShow() {
       } finally {
         setLoading(false);
       }
-    },
-    [hasMore, loading]
-  );
+  };
 
   // โหลดครั้งแรก
   useEffect(() => {
@@ -57,7 +61,7 @@ function SlideShow() {
       initialLoaded.current = true;
       loadImages(1);
     }
-  }, [loadImages]);
+  }, []);
 
   // Scroll handler
   const handleScroll = useCallback(() => {
@@ -89,11 +93,11 @@ function SlideShow() {
   };
 
   // Filter by hashtag
-  const filterByHashtag = (tag) => {
+  const filterByHashtag = async (tag) => {
     setIsFiltering(true);
-    const filtered = allImages.filter(img => img.hashtags?.includes(tag));
-    setImages(filtered);
-    setHasMore(false);
+    setHasMore(true);
+    setLoading(false);
+    loadImages(1, tag);
   };
 
   // Reset filter

@@ -6,53 +6,53 @@ import "./SlideShow.css";
 
 function SlideShow() {
   const BASE_URL = import.meta.env.VITE_API_URL;
+
   const [allImages, setAllImages] = useState([]);
-  const [images, setImages] = useState([]); 
+  const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isFiltering, setIsFiltering] = useState(false);
-  const initialLoaded = useRef(false);
+  const [hashtagFilter, setHashtagFilter] = useState("");
 
-  const imagesPerPage = 20;
+  const initialLoaded = useRef(false); // ตรวจสอบว่าโหลดครั้งแรกแล้วหรือยัง
+  const pageRef = useRef(1); // เก็บ page ปัจจุบันสำหรับ scroll handler
+
+  const imagesPerPage = 10;
   // โหลดรูปจาก API
   const loadImages = async (pageNum, hashtag = "") => {
-      if (!hashtag && (!hasMore || loading)) return; // ✅ เพิ่ม !hashtag เงื่อนไขพิเศษ
-      setLoading(true);
-      try {
-        const res = await axios.post(
-          `${BASE_URL}/api/images/getByHashtag`,
-          { params: { hashtag: hashtag, page: pageNum, limit: imagesPerPage } }
-        );
-        if(!res.status){
-          setHasMore(false);
-          return;
-        }
-        
-        const { data: newData, pagination } = res.data;
-        if (!newData || newData.length === 0) {
-          setHasMore(false);
-          return;
-        }
+    if (hashtag === "" && (loading || !hasMore)) return;
 
-        if(hashtag !== ""){
-          setImages(newData);
-          setHasMore(false);
-          setLoading(false);
-          return;
-        }
+    setLoading(true);
+    try {
+      const res = await axios.post(`${BASE_URL}/api/images/getByHashtag`, {
+        params: { hashtag, page: pageNum, limit: imagesPerPage }
+      });
 
-        setAllImages(prev => [...prev, ...newData]);
-        setImages(prev => [...prev, ...newData]);
+      const { data: newData, pagination } = res.data;
 
-        if (pagination.page >= pagination.totalPages) {
-          setHasMore(false);
-        }
-      } catch (err) {
-        console.error("Error loading images:", err);
-      } finally {
-        setLoading(false);
+      if (!newData || newData.length === 0) {
+        setHasMore(false);
+        return;
       }
+
+      // โหมด Filter
+      if (hashtag !== "") {
+        setImages(prev => pageNum === 1 ? newData : [...prev, ...newData]);
+        setHasMore(pagination.page < pagination.totalPages);
+        return;
+      }
+
+      // โหมดปกติ
+      setAllImages(prev => [...prev, ...newData]);
+      setImages(prev => [...prev, ...newData]);
+      setHasMore(pagination.page < pagination.totalPages);
+
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // โหลดครั้งแรก
@@ -66,25 +66,57 @@ function SlideShow() {
   // Scroll handler
   const handleScroll = useCallback(() => {
     if (loading || !hasMore) return;
+
     const scrollTop = window.pageYOffset;
     const scrollHeight = document.documentElement.scrollHeight;
     const clientHeight = window.innerHeight;
 
-    if (scrollTop + clientHeight >= scrollHeight - 300) {
-      setPage(prev => {
-        const next = prev + 1;
-        loadImages(next);
-        return next;
-      });
-    }
-  }, [loading, hasMore, loadImages, isFiltering]);
+    // ดึงข้อมูลเพิ่มเมื่อใกล้สุดหน้า
+    if (scrollTop + clientHeight >= scrollHeight - 200) {
+      const nextPage = pageRef.current + 1;
 
+      pageRef.current = nextPage;
+      setPage(nextPage);
+
+      loadImages(nextPage, hashtagFilter);
+    }
+  }, [loading, hasMore, hashtagFilter]); // ไม่ต้องมี page แล้ว
+
+  // Register scroll event
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
-  // Masonry breakpoint
+
+  // Filter by hashtag
+  const filterByHashtag = async (tag) => {
+    setHashtagFilter(tag);
+    setIsFiltering(true);
+
+    setPage(1);
+    pageRef.current = 1; // reset page ref
+
+    setImages([]);
+    setHasMore(true);
+
+    await loadImages(1, tag);
+  };
+
+  // Reset filter
+  const resetFilter = () => {
+    setHashtagFilter("");
+    setIsFiltering(false);
+
+    setImages([...allImages]);
+    setHasMore(true);
+
+    const restoredPage = Math.ceil(allImages.length / imagesPerPage);
+    setPage(restoredPage);
+    pageRef.current = restoredPage; // reset page ref
+  };
+
+
   const breakpointColumnsObj = {
     default: 4,
     1200: 3,
@@ -92,21 +124,6 @@ function SlideShow() {
     480: 1,
   };
 
-  // Filter by hashtag
-  const filterByHashtag = async (tag) => {
-    setIsFiltering(true);
-    setHasMore(true);
-    setLoading(false);
-    loadImages(1, tag);
-  };
-
-  // Reset filter
-  const resetFilter = () => {
-    setIsFiltering(false);
-    setImages([...allImages]); 
-    setHasMore(true);
-    setPage(Math.ceil(allImages.length / imagesPerPage));
-  };
 
   return (
     <div className="container my-3">
@@ -149,16 +166,23 @@ function SlideShow() {
           </button>
         </div>
       )}
+
       {loading && <div className="text-center my-3">กำลังโหลดรูปภาพ...</div>}
 
-        <div>
+      <div>
         {(() => {
           if (images.length === 0 && !loading) {
-            return <div className="text-center my-3">ไม่พบรูปภาพ Upload <a href='/upload'>ที่นี่</a></div>;
+            return (
+              <div className="text-center my-3">
+                ไม่พบรูปภาพ Upload <a href="/upload">ที่นี่</a>
+              </div>
+            );
           } else if (!hasMore && !isFiltering) {
-            return <div className="text-center text-muted my-3">
+            return (
+              <div className="text-center text-muted my-3">
                 ไม่มีข้อมูลเพิ่มเติมแล้ว
-              </div>;
+              </div>
+            );
           }
         })()}
       </div>

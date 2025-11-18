@@ -5,7 +5,7 @@ import debounce from 'lodash.debounce';
 
 
 const BASE_URL = import.meta.env.VITE_API_URL;
-const API_URL = `${BASE_URL}/api/hashtags`; // ✅ พอร์ต 4000
+const API_URL = `${BASE_URL}/api/hashtags`;
 const DEBOUNCE_MS = 300;
 
 export default function HashtagSelect({ value, onChange }) {
@@ -16,25 +16,13 @@ export default function HashtagSelect({ value, onChange }) {
   const normalizeInput = (s) => (s || '').replace(/^#/, '').trim();
 
   const loadOptions = (inputValue) => {
-    const q = normalizeInput(inputValue);
-    if (!q) {
-      setLastQueryOptions([]);
-
-      if (cancelSourceRef.current) {
-        try {
-          cancelSourceRef.current.cancel('empty query');
-        } catch (e) {
-          console.error('cancel error', e);
-        }
-      }
-      return Promise.resolve([]);
-    }
-    return new Promise((resolve) => debouncedFetch(q, resolve));
+    const q = normalizeInput(inputValue); // ตัด # และ trim ช่องว่าง
+    return new Promise((resolve) => debouncedFetch(q, resolve)); // ส่ง query ไป fetchOptions
   };
 
   // debounce เพื่อเลี่ยงการยิง API ถี่เกิน
-  const debouncedFetch = useCallback(
-    debounce((query, resolve) => {
+  const debouncedFetch = useCallback( // ใช้ useCallback เพื่อไม่ให้ฟังก์ชันเปลี่ยนทุกเรนเดอร์
+    debounce((query, resolve) => { // ดีเลย์การเรียก
       fetchOptions(query).then(resolve).catch(() => resolve([]));
     }, DEBOUNCE_MS),
     []
@@ -42,18 +30,18 @@ export default function HashtagSelect({ value, onChange }) {
 
   // โหลดข้อมูลจาก API (ตาม query)
   const fetchOptions = async (query) => {
-    if (cancelSourceRef.current) {
+    if (cancelSourceRef.current) { // ยกเลิกคำขอก่อนหน้า
       try {
         cancelSourceRef.current.cancel('cancel previous');
       } catch (e) {
         console.error('cancel error', e);
       }
     }
-    cancelSourceRef.current = axios.CancelToken.source();
+    cancelSourceRef.current = axios.CancelToken.source(); // สร้าง cancel token ใหม่
 
     try {
       const res = await axios.get(`${API_URL}?search=${encodeURIComponent(query)}`, {
-        cancelToken: cancelSourceRef.current.token,
+        cancelToken: cancelSourceRef.current.token, // แนบ token กับคำขอ เพื่อให้ยกเลิกได้
       });
 
       const hashtags = res.data?.data || [];
@@ -82,7 +70,7 @@ export default function HashtagSelect({ value, onChange }) {
     return false;
   };
 
-  // เมื่อผู้ใช้พิมพ์ hashtag ใหม่
+  // สร้างแฮชแท็กใหม่
   const handleCreate = async (inputValue) => {
     const name = normalizeInput(inputValue);
     if (!name || existsInOptionsOrSelected(name)) return;
@@ -91,7 +79,7 @@ export default function HashtagSelect({ value, onChange }) {
       const res = await axios.post(API_URL, { name });
       const created = res.data?.data || { name };
       const newOption = { id: created.id, value: created.name, label: `#${created.name}` };
-      onChange([...(value || []), newOption]);
+      onChange([...(value || []), newOption]); // เพิ่มตัวเลือกใหม่เข้าไป
     } catch (err) {
       console.error('create hashtag error', err);
     }
@@ -112,7 +100,6 @@ export default function HashtagSelect({ value, onChange }) {
           : `สร้างแฮชแท็กใหม่: #${normalizeInput(inputValue)}`
       }
       placeholder="ค้นหา หรือสร้าง #แฮชแท็ก"
-      noOptionsMessage={() => 'ไม่พบแฮชแท็กอื่นที่ค้นหา'}
       styles={{
         menu: (base) => ({ ...base, zIndex: 9999 }),
       }}
